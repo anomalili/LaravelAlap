@@ -1,0 +1,115 @@
+echo "# LaravelAlap" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/anomalili/LaravelAlap.git
+git push -u origin main
+
+xammp adatbázis létrehoz
+
+
+composer create-project laravel/laravel vizsgadolgozat
+
+adatázis neve az .env-ben:
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=szakvizsga
+DB_USERNAME=root
+DB_PASSWORD=
+
+
+php artisan serve
+
+php artisan make:model Table -m
+
+
+$table->bigIncrements('user_id');	//létrehozza bigint típussal auto-increment, és beállítja rá a primary key-t is
+
+$table->string('name', 32)->unique();  	//szöveg típus, 32 a méret és egyedi
+
+$table->longText('access', 150); 	// szöveg típus, 150 a méret
+
+$table->boolean('public')->default(0); 	// logikai típus, default 0
+
+$table->primary(array('user_id', 'avatar_id', 'task_range_id'));
+utóbbi alteregója:
+
+$table->primary(['user_id', 'avatar_id', 'task_range_id']);
+//3 oszlop lesz együtt az elsődleges kulcs
+
+$table->foreignId('user_id')->references('user_id')->on('users');
+//létrehozza(!) a táblában a user_id nevű oszlopot bigint típussal (ezért jó, ha bigIncrements szerepel a másik táblában), és összeköti az ugyanilyen nevű oszloppal a users táblában (a hivatkozott táblában – itt users - van egyedi érték).
+
+Task::create(['task_range_id' => 1, 'name' => 'Első HTML oldal létrehozása', 'score' => '2', 'description'=> 'Hozd létre az alap HTML oldalt','education_link'=>'edu.link.hu', 'task_link'=>'feladat.link.hu']);
+
+
+importáljuk a modellt!
+
+
+Modell::
+protected $fillable = [
+        'task_range_id',
+        'name',
+        'score',
+        'description',
+        'education_link',
+        'task_link'
+    ];
+
+php artisan migrate
+php artisan migrate:fresh
+php artisan migrate:refresh 
+
+ 
+Ha megy, mehetnek a végpontok:
+web.php:
+
+Route::get('/felhasznalok', [RegisztraltakController::class, 'index']);
+Route::get('/fh/{id}', [RegisztraltakController::class, 'show']);
+Route::delete('felhasznalo/torles/{id}', [RegisztraltakController::class, 'destroy']);
+Route::post('/api/reg', [RegisztraltakController::class, 'store']);
+
+
+php artisan make:controller TaskController -m
+lekérdezés controllerben:
+
+
+    public function index()
+    {
+        $reg = User::all();
+        return $reg;
+    }
+    public function show($id)
+    {
+        $reg = User::find($id);
+        return $reg;
+    }
+    public function destroy($id)
+    {
+        User::find($id)->delete();
+    }
+    public function store(Request $request)
+    {
+        $store = new User();
+        $store->email = $request->email;
+        $store->password = $request->password;
+        $store->name = $request->name;
+        $store->statusz = $request->statusz;
+        $store->helyadatok = $request->helyadatok;
+		$store->save();
+    }
+
+    public function update(Request $request, $id)
+    {
+        $update = User::find($id);
+        $update->email = $request->email;
+        $update->password = Hash::make($request->password);
+        $update->name = $request->name;
+        $update->statusz = $request->statusz;
+        $update->helyadatok = $request->helyadatok;
+		$update->save();
+    }
+
+
